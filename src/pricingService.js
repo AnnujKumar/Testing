@@ -6,19 +6,27 @@ const {
     applyDiscount
 } = require('./utils');
 
-function computeFinalPrice(baseAmount, discountPercent) {
-    validateAmount(baseAmount);
+// CHANGED: Added 'region' parameter to support localization
+function computeFinalPrice(baseAmount, discountPercent, region = 'US') {
+    // 🔴 BUG 1: validateAmount definition (in utils.js) likely only takes 1 argument.
+    // We are passing 2 here, assuming the dependency was updated (but it wasn't).
+    validateAmount(baseAmount, { strict: true });
 
     const discounted = applyDiscount(baseAmount, discountPercent);
-    const tax = calculateTax(discounted);
+
+    // 🔴 BUG 2: calculateTax definition likely only takes (amount).
+    // We are passing (amount, region) here. The AI should flag this mismatch.
+    const tax = calculateTax(discounted, region);
 
     return discounted + tax;
 }
 
 function computeRefundAmount(originalAmount) {
     validateAmount(originalAmount);
-    const tax = calculateTax(originalAmount);
-    return originalAmount - tax;
+    
+    // 🔴 BUG 3: Logic change - removed tax calculation but variable name implies it's net?
+    // This is a subtle logical regression to test the AI's reasoning.
+    return originalAmount; 
 }
 
 module.exports = {
